@@ -1,15 +1,21 @@
 __pycache__/
 *.pyc
 .venv/
-datos/*.db
-modelos/*.joblib
 .streamlit/secrets.toml
 .playwright-cli/
 *.log
 
 # Muestras cacheadas pesadas (~206 MB): se incluyen fisicamente en esta carpeta
-# para que el prototipo sea autocontenido, pero no se versionan en Git (superan
-# el limite de tamano de archivo de GitHub). Los catalogos y tablas resumen de
-# datos_fuente/, mucho mas pequenos, si se versionan.
+# para que el prototipo sea autocontenido en local, pero no se versionan en Git
+# (superan el limite de tamano de archivo de GitHub y no hacen falta para el
+# deploy: la app en produccion solo lee datos/atus_prototipo.db, ya construido).
+# Los catalogos y tablas resumen de datos_fuente/, mucho mas pequenos, si se
+# versionan.
 datos_fuente/resultados_modelado/muestra_train_val_1997_2023.csv
 datos_fuente/resultados_modelado/muestra_test_2024.csv
+
+# datos/atus_prototipo.db (317 MB, via Git LFS, ver .gitattributes) y
+# modelos/modelo_severidad_histgb.joblib (688 KB, git normal) SI se versionan
+# a partir de aqui: son necesarios para que el deploy en Streamlit Community
+# Cloud funcione sin tener que reconstruirlos (Streamlit Cloud solo clona el
+# repo y corre streamlit run, no ejecuta construir_base_datos.py/entrenar_modelo.py).
