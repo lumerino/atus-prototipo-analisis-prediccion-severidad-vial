@@ -18,6 +18,6 @@ def render(_: dict[str, object]) -> None:
         """
     )
     st.line_chart(annual.set_index("anio")[["accidentes_validos", "accidentes_con_victimas"]])
-    st.subheader("Proporcion de accidentes con victimas")
+    st.subheader("Proporción de accidentes con víctimas")
     st.area_chart(annual.set_index("anio")[["proporcion_con_victimas"]])
     st.dataframe(annual, width="stretch", hide_index=True)

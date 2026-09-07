@@ -19,7 +19,7 @@ def query(sql: str, params: tuple = ()) -> pd.DataFrame:
 
 def require_db() -> None:
     if not DB_PATH.exists():
-        st.error("No se encontro la base SQLite. Ejecuta: python src/construir_base_datos.py")
+        st.error("No se encontró la base SQLite. Ejecuta: python src/construir_base_datos.py")
         st.stop()
 
 

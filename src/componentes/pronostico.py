@@ -8,7 +8,7 @@ from .utils import query
 
 
 def render(_: dict[str, object]) -> None:
-    st.subheader("Pronostico agregado simplificado")
+    st.subheader("Pronóstico agregado simplificado")
     annual = query(
         """
         SELECT CAST(anio AS INTEGER) AS anio,
@@ -34,6 +34,6 @@ def render(_: dict[str, object]) -> None:
         ],
         ignore_index=True,
     )
-    st.caption("Fallback lineal local. Es una aproximacion exploratoria, no un modelo Prophet.")
+    st.caption("Fallback lineal local. Es una aproximación exploratoria, no un modelo Prophet.")
     st.line_chart(combined.set_index("anio")[["historico", "pronostico_con_victimas"]])
     st.dataframe(forecast, width="stretch", hide_index=True)

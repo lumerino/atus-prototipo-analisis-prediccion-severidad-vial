@@ -9,7 +9,7 @@ from componentes.utils import query, require_db
 st.set_page_config(page_title="ATUS | Prototipo de severidad vial", layout="wide")
 require_db()
 
-st.title("ATUS | Prototipo de analisis y prediccion de severidad vial")
+st.title("ATUS | Prototipo de análisis y predicción de severidad vial")
 st.caption("Base ATUS INEGI 1997-2024. Prototipo local del Entregable 4.")
 
 with st.sidebar:
@@ -20,17 +20,17 @@ with st.sidebar:
     types = ["Todos"] + query("SELECT DISTINCT TIPACCID FROM hechos_accidentes ORDER BY TIPACCID")["TIPACCID"].astype(str).tolist()
 
     section = st.radio(
-        "Seccion",
+        "Sección",
         [
             "Resumen general",
             "Tendencias",
-            "Distribucion territorial",
+            "Distribución territorial",
             "Perfil de severidad",
             "Modelo predictivo",
-            "Pronostico agregado",
+            "Pronóstico agregado",
         ],
     )
-    selected_year = st.selectbox("Ano", years)
+    selected_year = st.selectbox("Año", years)
     selected_entity = st.selectbox("Entidad", entity_options)
     selected_type = st.selectbox("Tipo de accidente", types)
 
@@ -44,7 +44,7 @@ if section == "Resumen general":
     resumen.render(filters)
 elif section == "Tendencias":
     tendencias.render(filters)
-elif section == "Distribucion territorial":
+elif section == "Distribución territorial":
     territorial.render(filters)
 elif section == "Perfil de severidad":
     severidad.render(filters)

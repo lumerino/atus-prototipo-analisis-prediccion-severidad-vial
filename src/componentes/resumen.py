@@ -25,11 +25,11 @@ def render(filters: dict[str, object]) -> None:
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Accidentes en muestra", f"{total:,}")
-    c2.metric("Con victimas", f"{victimas:,}")
-    c3.metric("% con victimas", format_pct(prop))
+    c2.metric("Con víctimas", f"{victimas:,}")
+    c3.metric("% con víctimas", format_pct(prop))
     c4.metric("Periodo", f"{int(kpis['anio_min'])}-{int(kpis['anio_max'])}" if total else "Sin datos")
 
-    st.subheader("Distribucion anual filtrada")
+    st.subheader("Distribución anual filtrada")
     annual = query(
         f"""
         SELECT CAST(ANIO AS INTEGER) AS anio,
