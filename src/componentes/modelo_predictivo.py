@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import calendar
 import json
 import sys
+from datetime import date
 from pathlib import Path
 
 import altair as alt
@@ -23,8 +25,6 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 ETIQUETAS_CAMPO = {
-    "MES": "Mes",
-    "DIASEMANA": "Día de la semana",
     "TIPACCID": "Tipo de accidente",
     "CAUSAACCI": "Causa del accidente",
     "CAPAROD": "Superficie de rodamiento",
@@ -60,6 +60,28 @@ def _franja_horaria(hora: int) -> str:
     if 18 <= hora <= 23:
         return "Noche"
     return "No especificada"
+
+
+NOMBRES_MES = {
+    "01": "Enero", "02": "Febrero", "03": "Marzo", "04": "Abril",
+    "05": "Mayo", "06": "Junio", "07": "Julio", "08": "Agosto",
+    "09": "Septiembre", "10": "Octubre", "11": "Noviembre", "12": "Diciembre",
+}
+_DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+
+def _dia_semana(anio: int, mes: int, dia: int) -> tuple[str, int]:
+    """Dado Año+Mes+Día del mes, calcula el día de la semana real (calendario
+    Gregoriano) en vez de dejarlo como un campo independiente: en un calendario
+    real el día de la semana queda determinado por la fecha, no es una
+    variable que se pueda elegir aparte sin arriesgar una combinación
+    imposible (p. ej. "15 de enero de 2024" que en realidad fue lunes, con
+    "día de la semana = domingo" elegido a mano). Si el día no existe en ese
+    mes/año (31 de febrero), se recorta al último día válido del mes."""
+    dias_en_mes = calendar.monthrange(anio, mes)[1]
+    dia_ajustado = min(dia, dias_en_mes)
+    fecha = date(anio, mes, dia_ajustado)
+    return _DIAS_SEMANA[fecha.weekday()], dia_ajustado
 
 METRICA_ETIQUETAS = {
     "accuracy": ("Accuracy", "Exactitud global"),
@@ -153,12 +175,27 @@ def render(_: dict[str, object]) -> None:
 
     with st.form("simulador"):
         st.markdown("##### 🕒 Cuándo y quién")
+        st.caption("El día de la semana se calcula solo a partir del año, mes y día del mes (no se elige aparte).")
         c1, c2, c3 = st.columns(3)
         row = {key: defaults[key] for key in metadata["numeric_features"]}
         row["ANIO"] = c1.number_input("Año", min_value=1997, max_value=2026, value=2024)
-        row["ID_DIA"] = c1.number_input("Día del mes", min_value=1, max_value=31, value=15)
-        row["ID_HORA"] = c2.number_input("Hora", min_value=0, max_value=23, value=18)
-        row["edad_valida"] = c3.number_input("Edad conductor", min_value=1, max_value=98, value=35)
+        mes_opciones = cat_values.get("MES", [f"{m:02d}" for m in range(1, 13)])
+        row["MES"] = c2.selectbox("Mes", mes_opciones, index=0, format_func=lambda m: NOMBRES_MES.get(m, m))
+        row["ID_DIA"] = c3.number_input("Día del mes", min_value=1, max_value=31, value=15)
+        row["ID_HORA"] = c1.number_input("Hora", min_value=0, max_value=23, value=18)
+        row["edad_valida"] = c2.number_input("Edad conductor", min_value=1, max_value=98, value=35)
+
+        row["DIASEMANA"], dia_ajustado = _dia_semana(int(row["ANIO"]), int(row["MES"]), int(row["ID_DIA"]))
+        if dia_ajustado != row["ID_DIA"]:
+            st.caption(
+                f"⚠️ {NOMBRES_MES.get(row['MES'], row['MES'])} {int(row['ANIO'])} no tiene el día {int(row['ID_DIA'])}; "
+                f"se ajustó al día {dia_ajustado}."
+            )
+            row["ID_DIA"] = dia_ajustado
+        st.caption(
+            f"📅 Fecha: {int(row['ID_DIA']):02d}/{row['MES']}/{int(row['ANIO'])} → día de la semana derivado: "
+            f"**{row['DIASEMANA']}**."
+        )
         row["edad_no_especificada"] = 0
 
         st.markdown("##### 🚗 Vehículos involucrados")
@@ -194,9 +231,8 @@ def render(_: dict[str, object]) -> None:
         zona_label = g2.selectbox("Zona y tipo de vía", list(ZONA_OPCIONES.keys()), index=0)
         row["URBANA"], row["SUBURBANA"] = ZONA_OPCIONES[zona_label]
 
-        otras_categoricas = [
-            f for f in metadata["categorical_features"] if f not in ("ID_ENTIDAD", "URBANA", "SUBURBANA", "franja_horaria")
-        ]
+        excluidos = {"ID_ENTIDAD", "URBANA", "SUBURBANA", "franja_horaria", "MES", "DIASEMANA"}
+        otras_categoricas = [f for f in metadata["categorical_features"] if f not in excluidos]
         for i, feature in enumerate(otras_categoricas):
             options = cat_values.get(feature, ["No especificado"])
             preferred = preferred_defaults.get(feature)
