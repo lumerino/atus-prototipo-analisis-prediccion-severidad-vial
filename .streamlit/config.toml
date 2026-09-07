@@ -8,3 +8,13 @@ font = "sans serif"
 
 [browser]
 gatherUsageStats = false
+
+[server]
+# Necesario para servir src/static/mx_estados.topojson: el geoshape del mapa
+# de Distribucion territorial solo renderiza si Vega/Vega-Lite carga el
+# TopoJSON por URL. Los datos inline (values=...) para geometrias
+# Polygon/MultiPolygon no renderizan en la version de Vega-Lite empaquetada
+# con Streamlit 1.63 (probado: GeoJSON y TopoJSON inline fallan en blanco o
+# con "Cannot read properties of undefined (reading 'length')" en
+# Object.Polygon/MultiPolygon; TopoJSON via URL funciona sin problema).
+enableStaticServing = true

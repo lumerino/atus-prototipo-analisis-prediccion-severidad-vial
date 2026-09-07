@@ -146,7 +146,7 @@ versión normalizada.
 
 1. `Resumen general`: KPIs globales y serie anual filtrada.
 2. `Tendencias`: series históricas anuales y proporción con víctimas.
-3. `Distribución territorial`: top entidades y municipios.
+3. `Distribución territorial`: mapa coroplético de las 32 entidades (accidentes totales o % con víctimas, a elegir) + top 10 entidades y municipios.
 4. `Perfil de severidad`: tipo de accidente, hora y variables del conductor.
 5. `Modelo predictivo`: métricas, matriz de confusión, ROC y simulador interactivo.
 6. `Pronóstico agregado`: fallback lineal local sobre la serie anual (Prophet no
@@ -174,6 +174,33 @@ colores por defecto de Streamlit:
   orden del eje de horas en "Perfil de severidad" (se corrigió con `CAST` +
   `GROUP BY` numérico, y se excluye `99` = hora no especificada), y etiquetas
   de categorías truncadas en los ejes de barras horizontales (`labelLimit`).
+
+## Mapa de "Distribución territorial"
+
+El mapa coroplético de entidades (`src/componentes/geo.py`) usa un GeoJSON de
+los 32 estados de México (`assets/mx_estados.geojson`, copia local de
+[angelnmara/geojson](https://github.com/angelnmara/geojson), MIT), unido por
+código ISO 3166-2 al `ID_ENTIDAD` de dos dígitos de INEGI/ATUS (mapeo
+verificado en `ID_ENTIDAD_A_ISO`, 32↔32).
+
+**Hallazgo no trivial**: `mark_geoshape` con datos geométricos *en línea*
+(`alt.Data(values=...)`, tanto GeoJSON como TopoJSON) renderiza en blanco o
+lanza `Cannot read properties of undefined (reading 'length')` en
+`Object.Polygon`/`MultiPolygon` con la versión de Vega-Lite que trae
+empaquetada Streamlit 1.63 — probado exhaustivamente (Polygon y MultiPolygon,
+con y sin `transform_lookup`, con y sin proyección explícita). La única
+combinación que renderiza correctamente es **TopoJSON cargado por URL**. Por
+eso:
+
+1. `assets/mx_estados.geojson` se convierte una sola vez a
+   `static/mx_estados.topojson` (`geo.py:convertir_a_topojson()`, requiere
+   `pip install topojson` aparte — no es una dependencia de la app en tiempo
+   de ejecución, ya que el archivo convertido queda commiteado).
+2. `.streamlit/config.toml` activa `enableStaticServing = true` para que
+   Streamlit sirva ese archivo en `app/static/mx_estados.topojson`.
+3. La app referencia esa URL relativa vía `alt.Data(url=..., format=...)`; solo
+   la tabla de valores para el `transform_lookup` (no la geometría) viaja como
+   dato inline, y eso sí funciona sin problema.
 
 ## Capturas
 
