@@ -25,9 +25,6 @@ if str(SRC_DIR) not in sys.path:
 ETIQUETAS_CAMPO = {
     "MES": "Mes",
     "DIASEMANA": "Día de la semana",
-    "franja_horaria": "Franja horaria",
-    "URBANA": "Zona urbana",
-    "SUBURBANA": "Zona suburbana",
     "TIPACCID": "Tipo de accidente",
     "CAUSAACCI": "Causa del accidente",
     "CAPAROD": "Superficie de rodamiento",
@@ -35,6 +32,34 @@ ETIQUETAS_CAMPO = {
     "ALIENTO": "Aliento alcohólico",
     "CINTURON": "Uso de cinturón",
 }
+
+# URBANA y SUBURBANA son, en los datos crudos, dos caras de una misma variable
+# de zona (un accidente urbano siempre trae SUBURBANA="Sin accidente en esta
+# zona" y viceversa). Exponerlas como dos selectbox independientes permite
+# combinaciones contradictorias (p. ej. "urbana en intersección" + "suburbana
+# en camino rural" a la vez). Se muestran como una sola opción de zona.
+ZONA_OPCIONES = {
+    "Urbana — accidente en intersección": ("Accidente en intersección", "Sin accidente en esta zona"),
+    "Urbana — accidente fuera de intersección": ("Accidente en no intersección", "Sin accidente en esta zona"),
+    "Suburbana — camino rural": ("Sin accidente en esta zona", "Accidente en camino rural"),
+    "Suburbana — carretera estatal": ("Sin accidente en esta zona", "Accidente en carretera estatal"),
+    "Suburbana — otro camino": ("Sin accidente en esta zona", "Accidentes en otro camino"),
+}
+
+
+def _franja_horaria(hora: int) -> str:
+    """Misma regla que `franja_from_hora` en generar_modelado_atus.py, para que
+    la franja horaria del simulador sea siempre consistente con la Hora elegida
+    en vez de un campo independiente que el usuario podria dejar contradictorio."""
+    if 0 <= hora <= 5:
+        return "Madrugada"
+    if 6 <= hora <= 11:
+        return "Mañana"
+    if 12 <= hora <= 17:
+        return "Tarde"
+    if 18 <= hora <= 23:
+        return "Noche"
+    return "No especificada"
 
 METRICA_ETIQUETAS = {
     "accuracy": ("Accuracy", "Exactitud global"),
@@ -137,19 +162,19 @@ def render(_: dict[str, object]) -> None:
         row["edad_no_especificada"] = 0
 
         st.markdown("##### 🚗 Vehículos involucrados")
+        st.caption("El total de vehículos se calcula automáticamente sumando los siguientes campos.")
         v1, v2, v3, v4 = st.columns(4)
-        row["total_vehiculos"] = v1.number_input("Total vehículos", min_value=1, max_value=20, value=2)
-        row["AUTOMOVIL"] = v2.number_input("Automóviles", min_value=0, max_value=20, value=1)
-        row["MOTOCICLET"] = v3.number_input("Motocicletas", min_value=0, max_value=20, value=1)
-        row["BICICLETA"] = v4.number_input("Bicicletas", min_value=0, max_value=20, value=0)
-        row["CAMIONETA"] = v1.number_input("Camionetas", min_value=0, max_value=20, value=0)
+        row["AUTOMOVIL"] = v1.number_input("Automóviles", min_value=0, max_value=20, value=1)
+        row["MOTOCICLET"] = v2.number_input("Motocicletas", min_value=0, max_value=20, value=1)
+        row["BICICLETA"] = v3.number_input("Bicicletas", min_value=0, max_value=20, value=0)
+        row["CAMIONETA"] = v4.number_input("Camionetas", min_value=0, max_value=20, value=0)
+        row["total_vehiculos"] = max(1, row["AUTOMOVIL"] + row["MOTOCICLET"] + row["BICICLETA"] + row["CAMIONETA"])
         row["involucra_motocicleta"] = int(row["MOTOCICLET"] > 0)
         row["involucra_bicicleta"] = int(row["BICICLETA"] > 0)
         row["involucra_pesado"] = 0
 
         st.markdown("##### 📍 Lugar y contexto")
         preferred_defaults = {
-            "franja_horaria": "Noche",
             "CAUSAACCI": "Conductor",
             "CAPAROD": "Pavimentada",
             "SEXO": "Hombre",
@@ -165,12 +190,22 @@ def render(_: dict[str, object]) -> None:
             index=18,
         )
         row["ID_ENTIDAD"] = entidad_label.split(" - ", 1)[0]
-        for i, feature in enumerate([f for f in metadata["categorical_features"] if f != "ID_ENTIDAD"]):
+
+        zona_label = g2.selectbox("Zona y tipo de vía", list(ZONA_OPCIONES.keys()), index=0)
+        row["URBANA"], row["SUBURBANA"] = ZONA_OPCIONES[zona_label]
+
+        otras_categoricas = [
+            f for f in metadata["categorical_features"] if f not in ("ID_ENTIDAD", "URBANA", "SUBURBANA", "franja_horaria")
+        ]
+        for i, feature in enumerate(otras_categoricas):
             options = cat_values.get(feature, ["No especificado"])
             preferred = preferred_defaults.get(feature)
             default_index = options.index(preferred) if preferred in options else 0
             etiqueta = ETIQUETAS_CAMPO.get(feature, feature)
-            row[feature] = grupos[(i + 1) % 3].selectbox(etiqueta, options, index=default_index)
+            row[feature] = grupos[(i + 2) % 3].selectbox(etiqueta, options, index=default_index)
+
+        row["franja_horaria"] = _franja_horaria(int(row["ID_HORA"]))
+        st.caption(f"Franja horaria derivada de la hora ({row['ID_HORA']:02d}:00): **{row['franja_horaria']}**.")
 
         submitted = st.form_submit_button("🧮 Calcular probabilidad", use_container_width=True)
 
