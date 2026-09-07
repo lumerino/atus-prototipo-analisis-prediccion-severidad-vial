@@ -36,6 +36,12 @@ SECCIONES = [
     ("🔮", "Pronóstico agregado"),
 ]
 
+# Solo estas dos secciones consultan hechos_accidentes (con Año/Entidad/Tipo);
+# el resto usa tablas ya agregadas del EDA (resumen_anual, resumen_territorial)
+# o metricas fijas del modelo, para no mezclar la muestra 1997-2023 con el
+# censo 2024 fuera de donde ya se advierte esa diferencia (ver Resumen general).
+SECCIONES_CON_FILTRO = {"Resumen general", "Perfil de severidad"}
+
 with st.sidebar:
     st.markdown(
         """
@@ -57,16 +63,28 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
+    filtros_aplican = section in SECCIONES_CON_FILTRO
+
     st.markdown("---")
     st.markdown("### 🔎 Filtros")
+    if filtros_aplican:
+        st.caption("✅ Estos filtros aplican a esta vista.")
+    else:
+        st.caption(
+            "ℹ️ Estos filtros **no aplican** aquí: esta vista usa series ya "
+            "agregadas para todo el país y todo el periodo (ver metodología en "
+            "el documento). Solo afectan a *Resumen general* y *Perfil de "
+            "severidad*."
+        )
+
     years = ["Todos"] + [str(x) for x in query("SELECT DISTINCT ANIO FROM hechos_accidentes ORDER BY ANIO")["ANIO"]]
     entities = query("SELECT ID_ENTIDAD, NOM_ENTIDAD FROM dim_entidad ORDER BY ID_ENTIDAD")
     entity_options = ["Todas"] + [f"{r.ID_ENTIDAD} - {r.NOM_ENTIDAD}" for r in entities.itertuples(index=False)]
     types = ["Todos"] + query("SELECT DISTINCT TIPACCID FROM hechos_accidentes ORDER BY TIPACCID")["TIPACCID"].astype(str).tolist()
 
-    selected_year = st.selectbox("Año", years)
-    selected_entity = st.selectbox("Entidad", entity_options)
-    selected_type = st.selectbox("Tipo de accidente", types)
+    selected_year = st.selectbox("Año", years, disabled=not filtros_aplican)
+    selected_entity = st.selectbox("Entidad", entity_options, disabled=not filtros_aplican)
+    selected_type = st.selectbox("Tipo de accidente", types, disabled=not filtros_aplican)
 
     st.markdown("---")
     st.caption("Prototipo local · Streamlit + SQLite + scikit-learn")
