@@ -1,7 +1,10 @@
 """Construye el modelo de datos SQLite del prototipo ATUS.
 
-El script reutiliza las muestras cacheadas del Entregable 2. No procesa los
-CSV crudos anuales de ATUS.
+El script reutiliza copias locales de las muestras cacheadas y tablas resumen
+de los Entregables 1-3 (ver `datos_fuente/`), incluidas dentro de este mismo
+repositorio para que el prototipo quede autocontenido en `actividad4/` y no
+dependa de las carpetas hermanas `actividad1/`, `actividad2/` o `actividad3/`.
+No procesa los CSV crudos anuales de ATUS.
 """
 
 from __future__ import annotations
@@ -13,21 +16,12 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SEMINARIO_DIR = Path(__file__).resolve().parents[3]
-ACTIVIDAD1 = SEMINARIO_DIR / "actividad1"
-ACTIVIDAD2 = SEMINARIO_DIR / "actividad2"
-ACTIVIDAD3 = SEMINARIO_DIR / "actividad3"
+DATOS_FUENTE = ROOT / "datos_fuente"
 
-MODELADO_DIR = ACTIVIDAD2 / "resultados_modelado"
-EDA_DIR = ACTIVIDAD2 / "resultados_eda"
-CATALOGOS_DIR = ACTIVIDAD1 / "atus_zip" / "catalogos"
-ADICIONALES_DIR = (
-    ACTIVIDAD3
-    / "TFM Entregable 3"
-    / "TFM Entregable 3"
-    / "Entregable 3 - Paquete final"
-    / "resultados_modelado_adicionales"
-)
+MODELADO_DIR = DATOS_FUENTE / "resultados_modelado"
+EDA_DIR = DATOS_FUENTE / "resultados_eda"
+CATALOGOS_DIR = DATOS_FUENTE / "catalogos"
+ADICIONALES_DIR = DATOS_FUENTE / "resultados_modelado_adicionales"
 
 DB_PATH = ROOT / "datos" / "atus_prototipo.db"
 TRAIN_PATH = MODELADO_DIR / "muestra_train_val_1997_2023.csv"

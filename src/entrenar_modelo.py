@@ -1,9 +1,14 @@
-"""Entrena y persiste el modelo ganador del proyecto ATUS."""
+"""Entrena y persiste el modelo ganador del proyecto ATUS.
+
+Usa la copia local vendorizada de `generar_modelado_atus.py` (en esta misma
+carpeta `src/`), no la de `actividad2/`, para que el prototipo sea
+autocontenido y el pipeline persistido (que referencia `to_dense` por módulo
+al des-serializarse con joblib) no dependa de una carpeta hermana.
+"""
 
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import joblib
@@ -15,14 +20,11 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.utils.class_weight import compute_sample_weight
 
+from generar_modelado_atus import CATEGORICAL_FEATURES, NUMERIC_FEATURES, build_features, build_preprocessor, load_sample, to_dense
+
 
 ROOT = Path(__file__).resolve().parents[1]
-SEMINARIO_DIR = Path(__file__).resolve().parents[3]
-ACTIVIDAD2 = SEMINARIO_DIR / "actividad2"
-MODELADO_DIR = ACTIVIDAD2 / "resultados_modelado"
-
-sys.path.insert(0, str(ACTIVIDAD2))
-from generar_modelado_atus import CATEGORICAL_FEATURES, NUMERIC_FEATURES, build_features, build_preprocessor, load_sample, to_dense  # noqa: E402
+MODELADO_DIR = ROOT / "datos_fuente" / "resultados_modelado"
 
 
 TRAIN_PATH = MODELADO_DIR / "muestra_train_val_1997_2023.csv"

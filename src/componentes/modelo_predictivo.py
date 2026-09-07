@@ -13,9 +13,12 @@ from .utils import ROOT, query
 
 MODEL_PATH = ROOT / "modelos" / "modelo_severidad_histgb.joblib"
 METADATA_PATH = ROOT / "modelos" / "metadata_modelo.json"
-ACTIVIDAD2 = Path(__file__).resolve().parents[4] / "actividad2"
-if str(ACTIVIDAD2) not in sys.path:
-    sys.path.insert(0, str(ACTIVIDAD2))
+# El pipeline persistido referencia `to_dense` como `generar_modelado_atus.to_dense`
+# al des-serializarse con joblib; ese modulo vive en src/ (vendorizado, ver
+# generar_modelado_atus.py), asi que basta con que src/ este en sys.path.
+SRC_DIR = Path(__file__).resolve().parents[1]
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 
 @st.cache_resource(show_spinner=False)

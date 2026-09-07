@@ -1,0 +1,11 @@
+﻿modelo,conjunto,accuracy,precision,recall,f1,roc_auc
+Regresión logística,validacion,0.798037,0.541047,0.648465,0.589905,0.828327
+Regresión logística,prueba_2024,0.820537,0.490086,0.723968,0.584498,0.857138
+Bosque aleatorio,validacion,0.855574,0.81665,0.458102,0.586952,0.851583
+Bosque aleatorio,prueba_2024,0.875006,0.739088,0.437584,0.549709,0.871017
+Gradient boosting (HistGB),validacion,0.801879,0.544886,0.701317,0.613283,0.855208
+Gradient boosting (HistGB),prueba_2024,0.829651,0.50793,0.735875,0.601016,0.878533
+Naive Bayes (Bernoulli),validacion,0.780318,0.507756,0.631462,0.562892,0.802198
+Naive Bayes (Bernoulli),prueba_2024,0.755708,0.398765,0.789995,0.530002,0.843436
+XGBoost,validacion,0.808558,0.559631,0.682084,0.61482,0.852872
+XGBoost,prueba_2024,0.83142,0.51159,0.731074,0.601949,0.878181

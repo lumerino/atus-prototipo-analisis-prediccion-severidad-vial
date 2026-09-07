@@ -6,3 +6,10 @@ modelos/*.joblib
 .streamlit/
 .playwright-cli/
 *.log
+
+# Muestras cacheadas pesadas (~206 MB): se incluyen fisicamente en esta carpeta
+# para que el prototipo sea autocontenido, pero no se versionan en Git (superan
+# el limite de tamano de archivo de GitHub). Los catalogos y tablas resumen de
+# datos_fuente/, mucho mas pequenos, si se versionan.
+datos_fuente/resultados_modelado/muestra_train_val_1997_2023.csv
+datos_fuente/resultados_modelado/muestra_test_2024.csv
