@@ -6,8 +6,5 @@ secondaryBackgroundColor = "#f2f3f5"
 textColor = "#0b0b0b"
 font = "sans serif"
 
-[client]
-toolbarMode = "minimal"
-
 [browser]
 gatherUsageStats = false

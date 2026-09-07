@@ -85,7 +85,7 @@ def inyectar_css() -> None:
     st.markdown(
         """
         <style>
-        #MainMenu, footer, header [data-testid="stToolbar"] {visibility: hidden;}
+        #MainMenu, footer, [data-testid="stAppDeployButton"] {visibility: hidden;}
 
         html, body, [class*="css"] { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
 
@@ -144,6 +144,19 @@ def inyectar_css() -> None:
         }
 
         .atus-caption { color: #898781; font-size: 0.85rem; }
+
+        .atus-curso {
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #52514e;
+            background: #ffffff;
+            border: 1px solid #e1e0d9;
+            border-left: 3px solid #2a78d6;
+            border-radius: 8px;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.9rem;
+        }
+        .atus-curso strong { color: #0b0b0b; }
         </style>
         """,
         unsafe_allow_html=True,

@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
 from componentes import modelo_predictivo, pronostico, resumen, severidad, tendencias, territorial
 from componentes.estilo import inyectar_css, registrar_tema_altair
 from componentes.utils import query, require_db
 
+LOGO_PATH = Path(__file__).resolve().parent / "assets" / "unir_logo.png"
 
 st.set_page_config(page_title="ATUS | Prototipo de severidad vial", layout="wide", page_icon="🚦")
 inyectar_css()
 registrar_tema_altair()
+if LOGO_PATH.exists():
+    st.logo(str(LOGO_PATH), size="large")
 require_db()
 
 st.markdown(
@@ -32,6 +37,18 @@ SECCIONES = [
 ]
 
 with st.sidebar:
+    st.markdown(
+        """
+        <div class="atus-curso">
+            <strong>Universidad Internacional de La Rioja (UNIR)</strong><br>
+            Escuela Superior de Ingeniería y Tecnología<br>
+            Máster Universitario en Análisis y Visualización de Datos Masivos<br>
+            Seminario: Innovación en Análisis y Visualización de Datos<br>
+            <em>Entregable 4 — Prototipo de la solución</em>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown("### 🧭 Navegación")
     section = st.radio(
         "Sección",

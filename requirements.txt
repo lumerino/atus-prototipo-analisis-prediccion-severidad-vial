@@ -6,3 +6,8 @@ joblib
 streamlit
 matplotlib
 altair
+# prophet instala cmdstanpy, que en el primer uso descarga el binario de CmdStan
+# (requiere conexion a internet una sola vez). Si falla en tu entorno, el
+# prototipo sigue funcionando: la seccion "Pronostico agregado" cae de vuelta
+# al fallback lineal automaticamente.
+prophet
