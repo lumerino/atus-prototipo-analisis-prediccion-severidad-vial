@@ -4,4 +4,5 @@ __pycache__/
 datos/*.db
 modelos/*.joblib
 .streamlit/
+.playwright-cli/
 *.log
