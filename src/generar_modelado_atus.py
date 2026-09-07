@@ -128,6 +128,26 @@ RAW_CATEGORICAL_COLUMNS = [
     "CINTURON",
 ]
 
+# FIX vendorizado (no presente en actividad2/generar_modelado_atus.py): el CSV crudo de ATUS
+# trae DIASEMANA con variantes de mayúsculas/acentos inconsistentes entre años ("lunes" vs
+# "Lunes", "Miercoles" vs "Miércoles", "Sabado" vs "Sábado"), que el `clean()` original no
+# normaliza. Sin este mapeo, el OneHotEncoder trata cada variante como una categoría distinta,
+# fragmentando ~170,000 registros (ver datos/atus_prototipo.db) entre dos columnas por día en
+# vez de una, y el simulador del prototipo mostraba días duplicados en el desplegable. Solo se
+# corrige aquí, en la copia local del Entregable 4: no se modifica actividad2/, para no alterar
+# los resultados ya reportados en los Entregables 2 y 3.
+DIASEMANA_CANONICO = {
+    "lunes": "Lunes",
+    "martes": "Martes",
+    "miercoles": "Miércoles",
+    "miércoles": "Miércoles",
+    "jueves": "Jueves",
+    "viernes": "Viernes",
+    "sabado": "Sábado",
+    "sábado": "Sábado",
+    "domingo": "Domingo",
+}
+
 # Columnas que se guardan en los CSV intermedios de muestra (crudas + etiqueta).
 # `ID_MUNICIPIO` se guarda pero NO es predictor: sólo lo consume la prueba de sensibilidad.
 SAMPLE_COLUMNS = (
@@ -346,6 +366,8 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
 
     for col in RAW_CATEGORICAL_COLUMNS:
         texto = df[col].fillna("").astype(str).str.strip()
+        if col == "DIASEMANA":
+            texto = texto.apply(lambda v: DIASEMANA_CANONICO.get(v.lower(), v))
         features[col] = texto.replace("", "No especificado")
 
     return features[NUMERIC_FEATURES + CATEGORICAL_FEATURES]

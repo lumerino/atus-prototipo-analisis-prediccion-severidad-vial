@@ -44,7 +44,14 @@ La app queda disponible normalmente en `http://localhost:8501`.
   que ni el entrenamiento ni la deserialización del pipeline (`joblib` referencia
   `to_dense` por nombre de módulo) dependan de esa carpeta hermana. Cada
   archivo trae una nota al inicio explicando qué se usa de él y qué no aplica
-  en esta ubicación.
+  en esta ubicación. La copia local de `generar_modelado_atus.py` además
+  corrige un hallazgo propio de este entregable: `DIASEMANA` traía variantes de
+  mayúsculas/acentos inconsistentes (`lunes`/`Lunes`, `Sabado`/`Sábado`,
+  `Miercoles`/`Miércoles`) que fragmentaban ~170,000 registros de entrenamiento
+  entre dos categorías por día y hacían que el simulador mostrara 11 opciones
+  para 7 días reales. Se normaliza solo aquí — **no** se modifica
+  `actividad2/generar_modelado_atus.py` ni los resultados ya reportados en los
+  Entregables 2 y 3.
 - `src/app.py`: punto de entrada Streamlit con navegación lateral.
 - `src/componentes/`: módulos de dashboard por sección.
 - `datos_fuente/`: copias locales de los insumos (ver tabla abajo). Los dos CSV
@@ -89,15 +96,43 @@ evaluó contra el censo 2024. Métricas de prueba:
 
 | Métrica | Valor |
 |---|---:|
-| Accuracy | 0.830199 |
-| Precisión | 0.509059 |
-| Recall | 0.733908 |
-| F1 | 0.601146 |
-| ROC-AUC | 0.878848 |
+| Accuracy | 0.829385 |
+| Precisión | 0.507386 |
+| Recall | 0.736830 |
+| F1 | 0.600952 |
+| ROC-AUC | 0.879733 |
 
 Estas cifras son consistentes con el modelo ganador reportado en los Entregables
-2 y 3. La pequeña variación se debe a que aquí se ajusta el pipeline final sobre
-todo 1997-2023, sin reservar de nuevo el subconjunto de validación.
+2 y 3. La pequeña variación se debe a dos causas: (1) aquí se ajusta el pipeline
+final sobre todo 1997-2023, sin reservar de nuevo el subconjunto de validación, y
+(2) se corrigió la normalización de `DIASEMANA` (ver abajo), lo que cambió
+ligeramente la matriz de diseño. El efecto de ambas causas combinadas es marginal
+(ΔF1 = -0.0002, ΔROC-AUC = +0.0009).
+
+## Hallazgo y corrección: normalización de `DIASEMANA`
+
+Al usar el simulador se detectó que el desplegable de día de la semana mostraba
+11 opciones para 7 días reales: el CSV crudo de ATUS mezcla mayúsculas/acentos
+inconsistentes entre años (`lunes`/`Lunes`, `Sabado`/`Sábado`,
+`Miercoles`/`Miércoles`), algo que la limpieza original del Entregable 2
+(`clean()` en `generar_eda_atus.py`) no normaliza. Esto fragmentaba cerca de
+170,000 registros de entrenamiento (de ~1.14M) entre dos categorías por cada día
+afectado, diluyendo la señal que el `OneHotEncoder` podía aprender por día.
+
+Se corrigió agregando un mapeo de normalización (`DIASEMANA_CANONICO`) dentro de
+`build_features()`, **únicamente en la copia local vendorizada**
+(`src/generar_modelado_atus.py`) — no se tocó `actividad2/generar_modelado_atus.py`
+ni se alteraron los resultados ya reportados en los Entregables 2 y 3. Tras
+reentrenar, el desempeño se mantuvo prácticamente igual (ver tabla arriba), lo
+que confirma que era una mejora de calidad de datos y de usabilidad del
+simulador, no un cambio sustantivo en la capacidad predictiva del modelo.
+
+Nota de alcance: `datos/atus_prototipo.db` (tabla `hechos_accidentes`) conserva
+los valores crudos de `DIASEMANA` tal cual vienen del CSV, sin normalizar —
+ningún panel del dashboard agrupa por día de la semana, así que esto no afecta
+ninguna vista. Solo el pipeline de entrenamiento/inferencia (y por lo tanto el
+desplegable del simulador, que deriva sus opciones de `build_features()`) usa la
+versión normalizada.
 
 ## Secciones de la app
 
