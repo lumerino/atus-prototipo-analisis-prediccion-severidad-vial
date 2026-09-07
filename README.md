@@ -53,7 +53,15 @@ La app queda disponible normalmente en `http://localhost:8501`.
   `actividad2/generar_modelado_atus.py` ni los resultados ya reportados en los
   Entregables 2 y 3.
 - `src/app.py`: punto de entrada Streamlit con navegación lateral.
-- `src/componentes/`: módulos de dashboard por sección.
+- `src/componentes/estilo.py`: paleta y estilos compartidos por las seis vistas
+  (colores categóricos/secuenciales/de estado, tema de Altair, CSS de tarjetas
+  KPI, encabezado con degradado). Un único punto de definición para que todas
+  las vistas usen exactamente los mismos colores.
+- `src/componentes/`: módulos de dashboard por sección, con gráficos Altair
+  (no los `st.line_chart`/`bar_chart` por defecto de Streamlit) para controlar
+  colores, tooltips, formato de ejes y leyendas.
+- `.streamlit/config.toml`: tema de Streamlit (colores, fuente) a juego con la
+  paleta de `estilo.py`.
 - `datos_fuente/`: copias locales de los insumos (ver tabla abajo). Los dos CSV
   de muestra (~206 MB) no se versionan en Git (ver `.gitignore`) pero sí están
   físicamente en esta carpeta.
@@ -143,6 +151,29 @@ versión normalizada.
 5. `Modelo predictivo`: métricas, matriz de confusión, ROC y simulador interactivo.
 6. `Pronóstico agregado`: fallback lineal local sobre la serie anual (Prophet no
    se instaló de forma confiable en el entorno Windows del equipo).
+
+## Diseño visual
+
+El dashboard usa una paleta categórica/secuencial/de estado validada para
+daltonismo y contraste (definida en `src/componentes/estilo.py`), en vez de los
+colores por defecto de Streamlit:
+
+- Encabezado con degradado, tarjetas KPI con borde de acento y tema de
+  Streamlit (`.streamlit/config.toml`) a juego con la paleta.
+- Todos los gráficos migraron de `st.line_chart`/`bar_chart` (sin control de
+  color/formato) a **Altair**: leyendas, tooltips, ejes con separador de miles
+  o formato de porcentaje, y colores consistentes entre vistas (azul/naranja
+  para series pareadas, rampa secuencial azul para magnitud).
+- Simulador: campos agrupados por tema (cuándo/quién, vehículos, lugar y
+  contexto), etiquetas legibles en vez de nombres de columna (`CAUSAACCI` →
+  "Causa del accidente"), y el resultado como tarjeta con color y etiqueta de
+  riesgo (bajo/medio/alto/muy alto) más un donut de probabilidad — no solo un
+  número.
+- Se corrigieron además dos bugs de datos que salieron a la luz al construir
+  las vistas: `ID_HORA` con mezcla de padding (`"01"` vs `"1"`) que rompía el
+  orden del eje de horas en "Perfil de severidad" (se corrigió con `CAST` +
+  `GROUP BY` numérico, y se excluye `99` = hora no especificada), y etiquetas
+  de categorías truncadas en los ejes de barras horizontales (`labelLimit`).
 
 ## Capturas
 

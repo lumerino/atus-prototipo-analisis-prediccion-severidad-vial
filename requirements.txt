@@ -5,3 +5,4 @@ scipy
 joblib
 streamlit
 matplotlib
+altair

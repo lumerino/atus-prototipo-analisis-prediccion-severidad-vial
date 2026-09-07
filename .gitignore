@@ -3,7 +3,7 @@ __pycache__/
 .venv/
 datos/*.db
 modelos/*.joblib
-.streamlit/
+.streamlit/secrets.toml
 .playwright-cli/
 *.log
 
